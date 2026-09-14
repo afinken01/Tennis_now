@@ -1012,6 +1012,16 @@ document.getElementById('cs-form').addEventListener('submit', async (e) => {
       type, name: name || null, email: email || null, message
     });
     if(error) throw error;
+
+    // Notify the site owner directly — no Database Webhook required.
+    // If this call fails for any reason, the feedback is still safely
+    // saved in the table above; it just won't trigger an email this time.
+    try{
+      await supabase.functions.invoke('notify-feedback', {
+        body: { type, name: name || null, email: email || null, message }
+      });
+    }catch(notifyErr){ /* feedback is saved either way; email is best-effort */ }
+
     successEl.style.display = 'block';
     document.getElementById('cs-form').reset();
     setTimeout(() => { csDialog.close(); successEl.style.display = 'none'; }, 1400);
